@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PolicyAI — India's Smartest Insurance Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─── */
+:root{
+  --ink:       #0E0D0B;
+  --slate:     #1A1916;
+  --slate-mid: #22201C;
+  --slate-card:#282420;
+  --slate-rim: #302C27;
+  --copper:    #B87333;
+  --copper-lt: #D4956A;
+  --copper-dim:#8A5A2A;
+  --cream:     #F2EDE6;
+  --cream-dim: #C4BAB0;
+  --cream-soft:#8A8078;
+  --gold-line: rgba(184,115,51,0.22);
+  --white8:    rgba(255,255,255,0.06);
+  --white4:    rgba(255,255,255,0.03);
+}
+
+/* ─── BASE ─── */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--slate);
+  color:var(--cream);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* Grain overlay */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.032;
+  mix-blend-mode:overlay;
+}
+
+/* Radial glow — hero only */
+.hero-glow{
+  position:absolute;top:-20%;left:50%;transform:translateX(-50%);
+  width:900px;height:500px;
+  background:radial-gradient(ellipse at center,rgba(184,115,51,0.12) 0%,transparent 68%);
+  pointer-events:none;z-index:0;
+}
+
+/* ─── KEYFRAMES ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes shimmer{from{background-position:200% center}to{background-position:-200% center}}
+@keyframes spinRing{to{transform:rotate(360deg)}}
+@keyframes tickLine{from{width:0}to{width:100%}}
+@keyframes softBob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ─── LOADER ─── */
+#loader{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  transition:opacity 0.8s ease;
+}
+.l-wordmark{
+  font-family:'Cormorant Garamond',serif;
+  font-size:3.6rem;font-weight:500;letter-spacing:0.18em;
+  color:var(--copper-lt);
+  margin-bottom:2.4rem;
+  opacity:0;animation:fadeIn 0.6s ease 0.3s forwards;
+}
+.l-ring-wrap{position:relative;width:48px;height:48px;margin-bottom:2rem;opacity:0;animation:fadeIn 0.6s ease 0.5s forwards;}
+.l-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid rgba(184,115,51,0.15);
+}
+.l-ring-spin{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid transparent;
+  border-top-color:var(--copper);
+  border-right-color:var(--copper-lt);
+  animation:spinRing 1.2s cubic-bezier(0.4,0,0.6,1) infinite;
+}
+.l-track{width:140px;height:1px;background:rgba(255,255,255,0.07);border-radius:1px;overflow:hidden;opacity:0;animation:fadeIn 0.6s ease 0.7s forwards;}
+.l-fill{height:100%;background:linear-gradient(90deg,var(--copper-dim),var(--copper),var(--copper-lt));animation:tickLine 1.8s ease 0.9s forwards;width:0;}
+.l-label{font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--cream-soft);margin-top:1rem;opacity:0;animation:fadeIn 0.6s ease 0.8s forwards;}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.1rem 4rem;
+  background:rgba(26,25,22,0.82);
+  backdrop-filter:blur(24px) saturate(160%);
+  border-bottom:1px solid var(--gold-line);
+}
+.nav-left{display:flex;align-items:baseline;gap:1rem;}
+.nav-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.55rem;font-weight:500;letter-spacing:0.14em;
+  color:var(--copper-lt);
+}
+.nav-sep{width:1px;height:14px;background:var(--gold-line);}
+.nav-desc{font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-soft);}
+.nav-badge{
+  font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--copper);background:rgba(184,115,51,0.08);
+  border:1px solid rgba(184,115,51,0.2);
+  padding:0.22rem 0.7rem;border-radius:2px;
+}
+
+/* ─── HERO ─── */
+#hero{
+  position:relative;z-index:2;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:8rem 2rem 5rem;
+  overflow:hidden;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:0.6rem;
+  font-size:0.65rem;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--copper);margin-bottom:2.2rem;
+  opacity:0;animation:fadeUp 0.7s ease 0.6s forwards;
+}
+.eyebrow-line{width:28px;height:1px;background:var(--copper);}
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3.4rem,7vw,6.2rem);
+  font-weight:500;line-height:1.06;
+  letter-spacing:0.01em;
+  margin-bottom:1.8rem;
+  opacity:0;animation:fadeUp 0.8s ease 0.8s forwards;
+}
+.hero-title em{
+  font-style:italic;
+  background:linear-gradient(110deg,var(--copper-dim),var(--copper-lt),var(--copper));
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4s linear 1.5s infinite;
+}
+.hero-sub{
+  max-width:520px;font-size:1rem;color:var(--cream-dim);
+  line-height:1.78;margin-bottom:3.2rem;font-weight:300;
+  opacity:0;animation:fadeUp 0.8s ease 1s forwards;
+}
+.hero-cta{
+  display:inline-flex;align-items:center;gap:0.7rem;
+  background:var(--copper);color:var(--ink);
+  font-family:'DM Sans',sans-serif;font-size:0.85rem;
+  font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  padding:0.95rem 2.4rem;border-radius:2px;
+  border:none;cursor:pointer;text-decoration:none;
+  transition:background 0.25s,transform 0.2s,box-shadow 0.25s;
+  box-shadow:0 4px 24px rgba(184,115,51,0.25);
+  opacity:0;animation:fadeUp 0.8s ease 1.2s forwards;
+}
+.hero-cta:hover{background:var(--copper-lt);transform:translateY(-2px);box-shadow:0 8px 36px rgba(184,115,51,0.35);}
+.hero-cta svg{transition:transform 0.2s;}
+.hero-cta:hover svg{transform:translateX(3px);}
+
+.hero-rule{
+  width:1px;height:60px;
+  background:linear-gradient(to bottom,transparent,var(--gold-line),transparent);
+  margin:3.2rem auto 0;
+  opacity:0;animation:fadeIn 1s ease 1.5s forwards;
+}
+
+.hero-stats{
+  display:flex;gap:4rem;margin-top:2.5rem;
+  padding-top:2.5rem;
+  border-top:1px solid var(--gold-line);
+  opacity:0;animation:fadeUp 0.8s ease 1.4s forwards;
+}
+.stat{text-align:center;}
+.stat-n{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.2rem;font-weight:500;color:var(--copper-lt);
+  line-height:1;
+}
+.stat-l{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--cream-soft);margin-top:0.4rem;}
+
+.scroll-hint{
+  position:absolute;bottom:2.5rem;left:50%;
+  transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:0.4rem;
+  color:var(--cream-soft);font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;
+  opacity:0;animation:fadeIn 1s ease 1.8s forwards, softBob 2.5s ease 2.5s infinite;
+}
+
+/* ─── HORIZONTAL RULE ─── */
+.section-rule{
+  max-width:1100px;margin:0 auto;
+  height:1px;background:linear-gradient(90deg,transparent,var(--gold-line),transparent);
+}
+
+/* ─── FORM SECTION ─── */
+#form-section{
+  position:relative;z-index:2;
+  padding:6rem 2rem 5rem;max-width:860px;margin:0 auto;
+}
+.sec-eyebrow{
+  font-size:0.62rem;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--copper);margin-bottom:0.7rem;
+  display:flex;align-items:center;gap:0.6rem;
+}
+.sec-eyebrow::before{content:'';width:22px;height:1px;background:var(--copper);}
+.sec-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.6rem;font-weight:500;margin-bottom:0.6rem;
+  letter-spacing:0.01em;
+}
+.sec-sub{color:var(--cream-soft);font-size:0.9rem;font-weight:300;line-height:1.65;margin-bottom:3rem;}
+
+.form-card{
+  background:var(--slate-card);
+  border:1px solid var(--slate-rim);
+  border-radius:6px;padding:3rem;
+  box-shadow:0 32px 80px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.02) inset;
+  position:relative;overflow:hidden;
+}
+/* Corner accent */
+.form-card::before{
+  content:'';position:absolute;top:0;left:0;
+  width:80px;height:80px;
+  background:radial-gradient(circle at top left,rgba(184,115,51,0.08),transparent 70%);
+  pointer-events:none;
+}
+.form-card::after{
+  content:'';position:absolute;bottom:0;right:0;
+  width:120px;height:120px;
+  background:radial-gradient(circle at bottom right,rgba(184,115,51,0.05),transparent 70%);
+  pointer-events:none;
+}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;}
+@media(max-width:580px){.form-grid{grid-template-columns:1fr}}
+
+.fg{display:flex;flex-direction:column;gap:0.55rem;}
+.fg label{
+  font-size:0.65rem;font-weight:600;letter-spacing:0.18em;
+  text-transform:uppercase;color:var(--copper);
+}
+.fg label span{color:var(--cream-soft);font-weight:400;text-transform:none;letter-spacing:0;}
+
+.rv{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.9rem;font-weight:500;
+  color:var(--cream);text-align:center;
+  line-height:1;margin-bottom:0.2rem;
+}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:2px;
+  background:var(--slate-rim);border-radius:1px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--copper);border:2px solid var(--slate-card);
+  box-shadow:0 0 0 3px rgba(184,115,51,0.18);
+  transition:transform 0.15s,box-shadow 0.15s;
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);box-shadow:0 0 0 5px rgba(184,115,51,0.22);}
+
+.rl{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--cream-soft);margin-top:0.2rem;}
+
+select{
+  background:var(--slate-mid);
+  border:1px solid var(--slate-rim);border-radius:4px;
+  padding:0.85rem 1rem;color:var(--cream);
+  font-family:'DM Sans',sans-serif;font-size:0.88rem;
+  outline:none;transition:border-color 0.2s;width:100%;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A8078' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;
+}
+select:focus{border-color:var(--copper-dim);}
+select option{background:var(--slate-mid);}
+
+/* Risk cards */
+.risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;margin-top:0.6rem;}
+.risk-card{
+  padding:1.2rem 1rem;border-radius:4px;cursor:pointer;text-align:center;
+  border:1px solid var(--slate-rim);background:var(--slate-mid);
+  transition:all 0.2s;position:relative;overflow:hidden;
+}
+.risk-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--copper);transform:scaleX(0);transition:transform 0.2s;}
+.risk-card:hover{border-color:rgba(184,115,51,0.3);background:rgba(184,115,51,0.04);}
+.risk-card:hover::before{transform:scaleX(0.4);}
+.risk-card.active{border-color:rgba(184,115,51,0.5);background:rgba(184,115,51,0.06);}
+.risk-card.active::before{transform:scaleX(1);}
+.risk-icon{font-size:1.5rem;margin-bottom:0.5rem;display:block;}
+.risk-name{font-size:0.82rem;font-weight:600;color:var(--cream);}
+.risk-desc{font-size:0.68rem;color:var(--cream-soft);margin-top:0.2rem;line-height:1.4;}
+
+/* Pills */
+.pill-group{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.6rem;}
+.pill{
+  padding:0.42rem 0.95rem;border-radius:2px;cursor:pointer;
+  border:1px solid var(--slate-rim);font-size:0.75rem;font-weight:500;
+  transition:all 0.18s;background:transparent;color:var(--cream-soft);
+  font-family:'DM Sans',sans-serif;
+}
+.pill:hover{border-color:rgba(184,115,51,0.35);color:var(--cream);}
+.pill.active{background:rgba(184,115,51,0.1);border-color:rgba(184,115,51,0.4);color:var(--copper-lt);}
+
+.divider{height:1px;background:var(--slate-rim);margin:2rem 0;}
+
+.submit-btn{
+  width:100%;padding:1.1rem;
+  background:var(--copper);
+  border:none;border-radius:4px;
+  color:var(--ink);font-family:'DM Sans',sans-serif;
+  font-size:0.88rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;margin-top:1.8rem;
+  transition:background 0.22s,transform 0.2s,box-shadow 0.22s;
+  box-shadow:0 6px 24px rgba(184,115,51,0.28);
+}
+.submit-btn:hover{background:var(--copper-lt);transform:translateY(-2px);box-shadow:0 10px 36px rgba(184,115,51,0.38);}
+
+/* ─── ANALYZING ─── */
+#analyzing{
+  display:none;text-align:center;
+  padding:5rem 2rem;max-width:440px;margin:0 auto;
+  position:relative;z-index:2;
+}
+.an-ring-wrap{position:relative;width:56px;height:56px;margin:0 auto 2.2rem;}
+.an-ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(184,115,51,0.12);}
+.an-spin{position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--copper);animation:spinRing 1s linear infinite;}
+.an-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:500;letter-spacing:0.04em;margin-bottom:0.5rem;color:var(--copper-lt);}
+.an-sub{color:var(--cream-soft);font-size:0.85rem;font-weight:300;}
+.steps-list{margin-top:2rem;display:flex;flex-direction:column;gap:0.55rem;text-align:left;}
+.step{padding:0.35rem 0;color:var(--cream-soft);font-size:0.83rem;display:flex;align-items:center;gap:0.6rem;}
+.step::before{content:'○';color:var(--slate-rim);font-size:0.7rem;flex-shrink:0;}
+.step.done{color:var(--copper-lt);}
+.step.done::before{content:'◆';color:var(--copper);}
+.step.active{color:var(--cream);font-weight:500;}
+.step.active::before{content:'◇';color:var(--copper-lt);}
+
+/* ─── RESULTS ─── */
+#results{
+  display:none;position:relative;z-index:2;
+  padding:3rem 2rem 6rem;max-width:1140px;margin:0 auto;
+}
+.back-btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:transparent;border:1px solid var(--slate-rim);
+  color:var(--cream-soft);padding:0.55rem 1.3rem;border-radius:2px;
+  cursor:pointer;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:3rem;transition:all 0.2s;font-family:'DM Sans',sans-serif;
+}
+.back-btn:hover{border-color:var(--copper-dim);color:var(--copper-lt);}
+.res-head{text-align:center;margin-bottom:3rem;}
+.res-head h2{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:500;margin-bottom:0.5rem;letter-spacing:0.02em;}
+.res-head p{color:var(--cream-soft);font-size:0.85rem;font-weight:300;}
+.user-tags{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-top:1.2rem;}
+.utag{padding:0.28rem 0.8rem;border-radius:2px;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;background:rgba(184,115,51,0.08);border:1px solid rgba(184,115,51,0.2);color:var(--copper-lt);}
+
+.top-label{
+  text-align:center;font-size:0.62rem;letter-spacing:0.28em;
+  text-transform:uppercase;color:var(--copper);
+  display:flex;align-items:center;justify-content:center;gap:0.8rem;
+  margin-bottom:2rem;
+}
+.top-label::before,.top-label::after{content:'';flex:1;max-width:100px;height:1px;background:var(--gold-line);}
+
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:1.4rem;}
+
+/* ─── POLICY CARD ─── */
+.pcard{
+  background:var(--slate-card);
+  border:1px solid var(--slate-rim);
+  border-radius:6px;overflow:hidden;
+  position:relative;
+  transition:transform 0.3s cubic-bezier(.22,1,.36,1),box-shadow 0.3s,border-color 0.3s;
+}
+.pcard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--copper-dim),transparent);
+  transform:scaleX(0);transition:transform 0.35s ease;
+}
+.pcard:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.5);border-color:rgba(184,115,51,0.22);}
+.pcard:hover::before{transform:scaleX(1);}
+.pcard.top-pick{border-color:rgba(184,115,51,0.35);}
+.pcard.top-pick::before{transform:scaleX(1);background:linear-gradient(90deg,transparent,var(--copper),transparent);}
+
+.top-badge{
+  position:absolute;top:1.1rem;right:1.1rem;
+  background:rgba(184,115,51,0.12);border:1px solid rgba(184,115,51,0.3);
+  color:var(--copper-lt);font-size:0.6rem;font-weight:600;
+  letter-spacing:0.18em;padding:0.22rem 0.65rem;border-radius:2px;text-transform:uppercase;
+}
+
+/* Card header */
+.ch{padding:1.6rem 1.6rem 0.8rem;display:flex;align-items:flex-start;gap:1rem;}
+.clogo{
+  width:40px;height:40px;border-radius:4px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:0.78rem;font-weight:600;
+  letter-spacing:0.08em;
+}
+.pname{font-size:0.96rem;font-weight:600;color:var(--cream);line-height:1.3;}
+.pcomp{font-size:0.72rem;color:var(--cream-soft);margin-top:0.2rem;letter-spacing:0.05em;}
+
+/* Score bar */
+.score-row{padding:0 1.6rem 0.8rem;display:flex;align-items:center;gap:0.9rem;}
+.score-lbl{font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--cream-soft);min-width:58px;}
+.sbar-wrap{flex:1;height:3px;background:var(--slate-rim);border-radius:2px;overflow:hidden;}
+.sbar{height:100%;border-radius:2px;transition:width 1.4s cubic-bezier(.22,1,.36,1);}
+.snum{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:500;min-width:38px;text-align:right;}
+
+/* Card body */
+.cbody{padding:0 1.6rem 1.6rem;}
+.pdesc{font-size:0.79rem;color:var(--cream-soft);line-height:1.62;margin-bottom:0.9rem;font-weight:300;}
+.feats{display:flex;flex-direction:column;gap:0.42rem;margin-bottom:1rem;}
+.feat{display:flex;align-items:flex-start;gap:0.5rem;font-size:0.78rem;color:var(--cream-dim);}
+.fi{color:var(--copper);flex-shrink:0;margin-top:1px;font-size:0.7rem;}
+
+.p-note{
+  border-left:2px solid var(--copper-dim);
+  padding:0.7rem 0.9rem;
+  background:rgba(184,115,51,0.05);
+  border-radius:0 4px 4px 0;
+  font-size:0.77rem;color:var(--cream-dim);line-height:1.58;
+  margin-bottom:0.9rem;font-style:italic;
+}
+.p-note strong{font-style:normal;color:var(--copper-lt);font-weight:600;}
+
+.badges{display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.4rem;}
+.badge{font-size:0.67rem;padding:0.2rem 0.6rem;border-radius:2px;font-weight:500;letter-spacing:0.06em;}
+.badge-r{background:rgba(184,115,51,0.1);border:1px solid rgba(184,115,51,0.2);color:var(--copper-lt);}
+.badge-g{background:rgba(100,180,120,0.08);border:1px solid rgba(100,180,120,0.18);color:#7EC99A;}
+.badge-b{background:rgba(100,150,220,0.08);border:1px solid rgba(100,150,220,0.18);color:#8AAEE0;}
+
+/* Card footer */
+.cfoot{
+  padding:1rem 1.6rem;
+  border-top:1px solid var(--slate-rim);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.prem-label{font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--cream-soft);}
+.prem-val{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;color:var(--cream);}
+.view-btn{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  padding:0.55rem 1.1rem;border-radius:2px;
+  background:transparent;border:1px solid rgba(184,115,51,0.3);
+  color:var(--copper-lt);font-size:0.72rem;font-weight:600;
+  letter-spacing:0.08em;text-transform:uppercase;
+  cursor:pointer;text-decoration:none;transition:all 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.view-btn:hover{background:var(--copper);color:var(--ink);border-color:var(--copper);}
+.view-btn svg{transition:transform 0.18s;}
+.view-btn:hover svg{transform:translateX(2px);}
+
+/* ─── COMPARISON ─── */
+#comparison{display:none;margin-top:4rem;}
+.comp-eyebrow{font-size:0.62rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--copper);display:flex;align-items:center;gap:0.6rem;justify-content:center;margin-bottom:1rem;}
+.comp-eyebrow::before{content:'';width:22px;height:1px;background:var(--copper);}
+.comp-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:500;text-align:center;margin-bottom:2rem;letter-spacing:0.02em;}
+.tscroll{overflow-x:auto;border:1px solid var(--slate-rim);border-radius:6px;}
+.ctable{width:100%;border-collapse:collapse;background:var(--slate-card);}
+.ctable th{
+  padding:0.9rem 1.2rem;text-align:left;
+  font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--copper);font-weight:600;
+  border-bottom:1px solid var(--slate-rim);
+  background:rgba(184,115,51,0.05);
+  white-space:nowrap;
+}
+.ctable td{padding:0.85rem 1.2rem;font-size:0.8rem;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--cream-dim);white-space:nowrap;}
+.ctable td:first-child{color:var(--cream);font-weight:500;}
+.ctable tr:last-child td{border-bottom:none;}
+.ctable tr:hover td{background:rgba(184,115,51,0.03);}
+
+/* ─── FOOTER ─── */
+footer{
+  position:relative;z-index:2;text-align:center;
+  padding:2.5rem 2rem;
+  border-top:1px solid var(--slate-rim);
+  color:var(--cream-soft);font-size:0.73rem;line-height:1.8;font-weight:300;
+}
+footer strong{color:var(--copper-lt);font-weight:500;}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="l-wordmark">PolicyAI</div>
+  <div class="l-ring-wrap">
+    <div class="l-ring"></div>
+    <div class="l-ring-spin"></div>
+  </div>
+  <div class="l-track"><div class="l-fill"></div></div>
+  <div class="l-label">Initialising Smart Advisor</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <span class="nav-logo">PolicyAI</span>
+    <div class="nav-sep"></div>
+    <span class="nav-desc">India's Smartest Insurance Advisor</span>
+  </div>
+  <span class="nav-badge">AI Powered</span>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eyebrow">
+    <span class="eyebrow-line"></span>
+    Personalised AI Policy Recommendations
+    <span class="eyebrow-line"></span>
+  </div>
+  <h1 class="hero-title">
+    Discover Your<br><em>Ideal Policy</em><br>Match
+  </h1>
+  <p class="hero-sub">
+    LIC, Bajaj Allianz, ICICI Prudential — every plan scored by AI against your age, salary, risk appetite and life goals. Your ranked picks, in seconds.
+  </p>
+  <a href="#form-section" class="hero-cta" onclick="smth(event,'form-section')">
+    Analyse My Profile
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+  <div class="hero-rule"></div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n">12+</div><div class="stat-l">Policies</div></div>
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Insurers</div></div>
+    <div class="stat"><div class="stat-n">AI</div><div class="stat-l">Scoring</div></div>
+    <div class="stat"><div class="stat-n">Free</div><div class="stat-l">Always</div></div>
+  </div>
+  <div class="scroll-hint">
+    Scroll
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<div class="section-rule"></div>
+
+<!-- FORM -->
+<section id="form-section">
+  <div class="sec-eyebrow">Step 01 — Profile Input</div>
+  <h2 class="sec-title">Tell Us About Yourself</h2>
+  <p class="sec-sub">Our AI weights every policy across age fit, risk alignment, goals and time horizon — giving you a score-ranked shortlist.</p>
+
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="fg">
+        <label>Your Age</label>
+        <div class="rv" id="agev">30 yrs</div>
+        <input type="range" id="age" min="18" max="65" value="30" oninput="rv2('age','agev',' yrs')">
+        <div class="rl"><span>18 yrs</span><span>65 yrs</span></div>
+      </div>
+      <div class="fg">
+        <label>Annual Salary</label>
+        <div class="rv" id="salv">₹ 6 L</div>
+        <input type="range" id="sal" min="2" max="100" value="6" oninput="rsal()">
+        <div class="rl"><span>₹ 2 L</span><span>₹ 1 Cr</span></div>
+      </div>
+      <div class="fg">
+        <label>Investment Per Year</label>
+        <div class="rv" id="amtv">₹ 50,000</div>
+        <input type="range" id="amt" min="5000" max="500000" value="50000" step="5000" oninput="ramt()">
+        <div class="rl"><span>₹ 5 K</span><span>₹ 5 L</span></div>
+      </div>
+      <div class="fg">
+        <label>Time Period</label>
+        <div class="rv" id="perv">10 yrs</div>
+        <input type="range" id="per" min="5" max="40" value="10" oninput="rv2('per','perv',' yrs')">
+        <div class="rl"><span>5 yrs</span><span>40 yrs</span></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fg">
+      <label>Risk Appetite</label>
+      <div class="risk-grid">
+        <div class="risk-card active" data-risk="low" onclick="pickRisk(this)">
+          <span class="risk-icon">🛡️</span>
+          <div class="risk-name">Conservative</div>
+          <div class="risk-desc">Capital protection first</div>
+        </div>
+        <div class="risk-card" data-risk="medium" onclick="pickRisk(this)">
+          <span class="risk-icon">⚖️</span>
+          <div class="risk-name">Balanced</div>
+          <div class="risk-desc">Growth + Safety blend</div>
+        </div>
+        <div class="risk-card" data-risk="high" onclick="pickRisk(this)">
+          <span class="risk-icon">🚀</span>
+          <div class="risk-name">Aggressive</div>
+          <div class="risk-desc">Maximum growth focus</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fg">
+      <label>Investment Goals <span>— select all that apply</span></label>
+      <div class="pill-group">
+        <button class="pill active" data-t="life">Life Cover</button>
+        <button class="pill active" data-t="tax">Tax Saving</button>
+        <button class="pill" data-t="retirement">Retirement</button>
+        <button class="pill" data-t="child">Child Plan</button>
+        <button class="pill" data-t="wealth">Wealth Growth</button>
+        <button class="pill" data-t="health">Health Cover</button>
+        <button class="pill" data-t="ulip">ULIP / Market-Linked</button>
+        <button class="pill" data-t="annuity">Pension / Annuity</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fg">
+      <label>Gender <span>— affects premium calculation</span></label>
+      <select id="gender" style="margin-top:0.4rem">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Prefer not to say</option>
+      </select>
+    </div>
+
+    <button class="submit-btn" onclick="analyze()">Analyse &amp; Find My Best Policies →</button>
+  </div>
+</section>
+
+<!-- ANALYZING -->
+<div id="analyzing">
+  <div class="an-ring-wrap">
+    <div class="an-ring"></div>
+    <div class="an-spin"></div>
+  </div>
+  <div class="an-title">Analysing Profile</div>
+  <p class="an-sub">Scoring every policy against your inputs…</p>
+  <div class="steps-list">
+    <div class="step" id="s1">Processing your financial profile</div>
+    <div class="step" id="s2">Scoring 12+ policies across 3 insurers</div>
+    <div class="step" id="s3">Applying risk &amp; goal alignment</div>
+    <div class="step" id="s4">Generating personalised insights</div>
+    <div class="step" id="s5">Preparing your recommendations</div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+  <button class="back-btn" onclick="resetApp()">← Start Over</button>
+  <div class="res-head">
+    <h2>Your Policy Recommendations</h2>
+    <p>Ranked by AI score — highest match at the top</p>
+    <div class="user-tags" id="utags"></div>
+  </div>
+  <div class="top-label">Top Recommendations For You</div>
+  <div class="pgrid" id="pgrid"></div>
+  <div id="comparison">
+    <div class="comp-eyebrow">Side-by-Side</div>
+    <h3 class="comp-title">Policy Comparison</h3>
+    <div class="tscroll"><table class="ctable" id="ctable"></table></div>
+  </div>
+</div>
+
+<footer>
+  <strong>PolicyAI</strong> — For informational purposes only.<br>
+  Premium figures are indicative estimates. Always verify on the insurer's official website before purchasing. Consult a SEBI-registered financial advisor.
+</footer>
+
+<script>
+// ─── LOADER ───
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const l=document.getElementById('loader');
+    l.style.opacity='0';
+    setTimeout(()=>l.style.display='none',800);
+  },2400);
+});
+
+// ─── HELPERS ───
+function smth(e,id){
+  e.preventDefault();
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+}
+function rv2(id,vid,unit){
+  document.getElementById(vid).textContent=document.getElementById(id).value+unit;
+}
+function rsal(){
+  const v=+document.getElementById('sal').value;
+  document.getElementById('salv').textContent=v>=100?'₹ 1 Cr':'₹ '+v+' L';
+}
+function ramt(){
+  const v=+document.getElementById('amt').value;
+  document.getElementById('amtv').textContent=
+    v>=100000?'₹ '+(v/100000).toFixed(1)+' L':'₹ '+v.toLocaleString('en-IN');
+}
+
+let risk='low';
+function pickRisk(el){
+  document.querySelectorAll('.risk-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  risk=el.dataset.risk;
+}
+document.querySelectorAll('.pill').forEach(p=>p.addEventListener('click',()=>p.classList.toggle('active')));
+function goals(){return[...document.querySelectorAll('.pill.active')].map(p=>p.dataset.t);}
+
+// ─── POLICY DATABASE ───
+const POLICIES=[
+  {id:1,name:"New Jeevan Anand",company:"LIC",logo:"LIC",
+   bg:"rgba(184,115,51,0.1)",col:"#D4956A",
+   minAge:18,maxAge:50,risks:["low","medium"],tags:["life","tax"],
+   cover:"Whole life + Maturity Bonus",returns:"4–5.5%",tax:true,mat:true,
+   prem:a=>Math.round(a*.012),
+   link:"https://licindia.in/Products/Insurance-Plan",
+   desc:"India's most trusted whole-life endowment — sum assured paid at maturity plus life cover continues for lifetime.",
+   hi:["Whole life coverage post-maturity","Reversionary bonus accumulation","Tax deduction u/s 80C","Loan facility available"]},
+  {id:2,name:"New Endowment Plan",company:"LIC",logo:"LIC",
+   bg:"rgba(184,115,51,0.08)",col:"#B87333",
+   minAge:8,maxAge:55,risks:["low"],tags:["life","tax"],
+   cover:"Sum Assured + Bonus",returns:"4–5%",tax:true,mat:true,
+   prem:a=>Math.round(a*.013),
+   link:"https://licindia.in/Products/Insurance-Plan",
+   desc:"Classic guaranteed-return endowment. Ideal for risk-averse investors who prioritise safety above all.",
+   hi:["Guaranteed maturity amount","Death benefit for nominee","Section 80C tax saving","Optional riders available"]},
+  {id:3,name:"Jeevan Lakshya",company:"LIC",logo:"LIC",
+   bg:"rgba(184,115,51,0.09)",col:"#C8845A",
+   minAge:18,maxAge:50,risks:["low","medium"],tags:["child","life","tax"],
+   cover:"Annual income + Maturity sum",returns:"5–6%",tax:true,mat:true,
+   prem:a=>Math.round(a*.013),
+   link:"https://licindia.in/Products/Insurance-Plan",
+   desc:"Designed for your child's milestones. Pays annual income and lump sum at maturity even if parent passes mid-term.",
+   hi:["Annual survival benefits","Premium waiver on death","Guaranteed lump sum at maturity","Tax benefit u/s 80C"]},
+  {id:4,name:"Saral Pension Plan",company:"LIC",logo:"LIC",
+   bg:"rgba(140,90,40,0.1)",col:"#A06030",
+   minAge:40,maxAge:80,risks:["low"],tags:["annuity","retirement"],
+   cover:"Lifetime annuity",returns:"5–6%",tax:false,mat:false,
+   prem:a=>Math.round(a*.015),
+   link:"https://licindia.in/Products/Pension-Plan",
+   desc:"Immediate annuity — pension begins from month one. Zero market risk. Ideal for retirees needing stable income.",
+   hi:["Pension starts immediately","Joint life option for spouse","Return of purchase price","No equity/market risk"]},
+  {id:5,name:"Smart Protect Goal",company:"Bajaj Allianz",logo:"BAJ",
+   bg:"rgba(100,150,200,0.08)",col:"#7AAAD0",
+   minAge:18,maxAge:65,risks:["low","medium"],tags:["life","tax","wealth"],
+   cover:"50× Annual Premium",returns:"6–7%",tax:true,mat:true,
+   prem:a=>Math.round(a*.01),
+   link:"https://www.bajajallianz.com/life-insurance-plans/term-insurance-plans.html",
+   desc:"High-cover term and savings hybrid. Optional return of premium makes this outstanding value for working professionals.",
+   hi:["High life cover — 50× premium","Return of premium option","Flexible payment term","Critical illness rider"]},
+  {id:6,name:"Guaranteed Income Goal",company:"Bajaj Allianz",logo:"BAJ",
+   bg:"rgba(100,150,200,0.07)",col:"#6A9AC0",
+   minAge:21,maxAge:60,risks:["low","medium"],tags:["wealth","retirement","tax"],
+   cover:"Guaranteed monthly payouts",returns:"5–6.5%",tax:true,mat:true,
+   prem:a=>Math.round(a*.011),
+   link:"https://www.bajajallianz.com/life-insurance-plans/savings-insurance-plans.html",
+   desc:"Inflation-resistant guaranteed income post-maturity with life cover throughout the accumulation phase.",
+   hi:["Guaranteed monthly income","Life cover during pay-in","Section 80C tax saving","Flexible payout mode"]},
+  {id:7,name:"Child Advantage Plan",company:"Bajaj Allianz",logo:"BAJ",
+   bg:"rgba(100,170,130,0.07)",col:"#7AB89A",
+   minAge:18,maxAge:45,risks:["low","medium"],tags:["child","tax"],
+   cover:"Education + Marriage corpus",returns:"6–8%",tax:true,mat:true,
+   prem:a=>Math.round(a*.012),
+   link:"https://www.bajajallianz.com/life-insurance-plans/child-insurance-plans.html",
+   desc:"Milestone payouts secured for your child's education and marriage — even in your absence.",
+   hi:["Premium waiver on parent's death","Milestone-based corpus payouts","Market-linked growth option","Tax benefit u/s 80C"]},
+  {id:8,name:"Wealth Maxima ULIP",company:"Bajaj Allianz",logo:"BAJ",
+   bg:"rgba(120,100,200,0.07)",col:"#9080C0",
+   minAge:1,maxAge:55,risks:["high"],tags:["ulip","wealth"],
+   cover:"7× Annual Premium",returns:"10–15% (market-linked)",tax:true,mat:true,
+   prem:a=>Math.round(a*.009),
+   link:"https://www.bajajallianz.com/life-insurance-plans/ulip-insurance-plans.html",
+   desc:"Aggressive equity ULIP for long-term wealth maximisation. Multiple fund options with unlimited free switches.",
+   hi:["100% equity allocation option","Zero premium allocation charge","Unlimited free fund switches","High long-term growth"]},
+  {id:9,name:"iProtect Smart",company:"ICICI Prudential",logo:"ICI",
+   bg:"rgba(200,100,80,0.07)",col:"#C08070",
+   minAge:18,maxAge:65,risks:["low","medium","high"],tags:["life","tax"],
+   cover:"Up to ₹2 Cr+",returns:"N/A (Pure Term)",tax:true,mat:false,
+   prem:a=>Math.round(a*.008),
+   link:"https://www.iciciprulife.com/term-insurance-plans/iprotect-smart-plus-term-plan.html",
+   desc:"India's top-rated pure term plan with 99.31% claim settlement ratio. Optional 34 critical illness cover.",
+   hi:["99.31% claim settlement ratio","34 critical illness (optional)","Accidental death benefit","15% discount for women"]},
+  {id:10,name:"Pru Signature ULIP",company:"ICICI Prudential",logo:"ICI",
+   bg:"rgba(80,120,200,0.07)",col:"#7090C0",
+   minAge:7,maxAge:55,risks:["medium","high"],tags:["ulip","wealth","tax"],
+   cover:"7× Annual Premium",returns:"8–12% (market-linked)",tax:true,mat:true,
+   prem:a=>Math.round(a*.009),
+   link:"https://www.iciciprulife.com/ulip-plans.html",
+   desc:"Feature-rich market-linked ULIP with multiple fund choices. Tax-free maturity and partial withdrawals post 5 years.",
+   hi:["Multiple equity/debt funds","Tax-free maturity u/s 10(10D)","Partial withdrawal after 5 yrs","Unlimited free switches"]},
+  {id:11,name:"Smart Health GoActive",company:"ICICI Prudential",logo:"ICI",
+   bg:"rgba(80,180,130,0.07)",col:"#60B090",
+   minAge:18,maxAge:65,risks:["low","medium","high"],tags:["health"],
+   cover:"₹5 L – ₹2 Cr",returns:"N/A",tax:true,mat:false,
+   prem:a=>Math.round(a*.006),
+   link:"https://www.iciciprulife.com/health-insurance-plans.html",
+   hi:["No room-rent sub-limits","Pre & post-hospitalisation","Mental health coverage","50% No Claim Bonus"]},
+  {id:12,name:"Guaranteed Pension Plan",company:"ICICI Prudential",logo:"ICI",
+   bg:"rgba(180,120,60,0.07)",col:"#B08040",
+   minAge:30,maxAge:70,risks:["low","medium"],tags:["annuity","retirement","tax"],
+   cover:"Guaranteed life pension",returns:"5.5–6.5%",tax:true,mat:true,
+   prem:a=>Math.round(a*.014),
+   link:"https://www.iciciprulife.com/retirement-pension-plans.html",
+   desc:"Deferred annuity that builds corpus during working years, converting to guaranteed pension at your chosen vesting age.",
+   hi:["Guaranteed pension income","Flexible vesting age 40–70","Tax deduction u/s 80CCC","Spouse coverage option"]}
+];
+
+// ─── SCORING ───
+function scoreP(p,pr){
+  let s=0;
+  if(pr.age>=p.minAge&&pr.age<=p.maxAge)s+=20;
+  else s+=Math.max(0,20-Math.abs(pr.age-(pr.age<p.minAge?p.minAge:p.maxAge))*3);
+  s+=p.risks.includes(pr.risk)?25:5;
+  const ov=p.tags.filter(t=>pr.goals.includes(t)).length;
+  s+=Math.min(25,ov*10);
+  if(pr.period>=20&&['ulip','wealth','annuity'].some(t=>p.tags.includes(t)))s+=15;
+  else if(pr.period>=10)s+=10;else s+=5;
+  const ratio=p.prem(pr.amt)/pr.amt;
+  s+=(ratio>=.006&&ratio<=.02)?15:8;
+  if(p.tax&&pr.goals.includes('tax'))s+=5;
+  return Math.min(99,Math.round(s));
+}
+function note(p,pr){
+  if(pr.age<35&&p.tags.includes('ulip'))return`At ${pr.age}, compounding over ${pr.period} years can yield significant wealth — ULIP equity funds work best with long horizons.`;
+  if(pr.risk==='low'&&p.risks.includes('low'))return`Suits your conservative stance — capital is well-protected with guaranteed, predictable returns.`;
+  if(pr.risk==='high'&&['ulip','wealth'].some(t=>p.tags.includes(t)))return`Aligned with your aggressive appetite — market-linked funds targeting ${p.returns} over your investment horizon.`;
+  if(pr.goals.includes('tax')&&p.tax)return`Qualifies under Section 80C — can save up to ₹46,800 annually at the 30% tax slab.`;
+  if(pr.goals.includes('retirement')&&p.tags.includes('annuity'))return`Converts your ${pr.period}-year corpus into guaranteed, lifelong pension with zero reinvestment risk.`;
+  if(pr.period>=20)return`Your ${pr.period}-year horizon is ideal — gives compounding maximum time to work in your favour.`;
+  return`Solid coverage and returns at ₹${p.prem(pr.amt).toLocaleString('en-IN')} per year based on your profile.`;
+}
+
+// ─── ANALYSE ───
+function analyze(){
+  const pr={
+    age:+document.getElementById('age').value,
+    sal:+document.getElementById('sal').value,
+    amt:+document.getElementById('amt').value,
+    period:+document.getElementById('per').value,
+    risk,gender:document.getElementById('gender').value,goals:goals()
+  };
+  document.getElementById('hero').style.display='none';
+  document.getElementById('form-section').style.display='none';
+  document.getElementById('analyzing').style.display='block';
+  document.getElementById('results').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+  const sids=['s1','s2','s3','s4','s5'];let i=0;
+  function tick(){
+    if(i>0)document.getElementById(sids[i-1]).classList.add('done');
+    if(i<sids.length){document.getElementById(sids[i]).classList.add('active');i++;setTimeout(tick,560);}
+    else setTimeout(()=>{document.getElementById('analyzing').style.display='none';showResults(pr);},400);
+  }
+  tick();
+}
+
+function showResults(pr){
+  document.getElementById('results').style.display='block';
+  const rLabel={low:'Conservative',medium:'Balanced',high:'Aggressive'}[pr.risk];
+  document.getElementById('utags').innerHTML=`
+    <span class="utag">Age ${pr.age}</span>
+    <span class="utag">₹${pr.amt>=100000?((pr.amt/100000).toFixed(1)+'L'):pr.amt.toLocaleString('en-IN')} / yr</span>
+    <span class="utag">${pr.period} Years</span>
+    <span class="utag">${rLabel} Risk</span>
+    ${pr.goals.slice(0,3).map(g=>`<span class="utag">${g.charAt(0).toUpperCase()+g.slice(1)}</span>`).join('')}
+  `;
+  const ranked=POLICIES.map(p=>({...p,sc:scoreP(p,pr),nt:note(p,pr)})).sort((a,b)=>b.sc-a.sc);
+  const top=ranked.slice(0,6);
+  const grid=document.getElementById('pgrid');grid.innerHTML='';
+  top.forEach((p,idx)=>{
+    const isTop=idx===0;
+    const prem=p.prem(pr.amt);
+    // Score colour — subtle spectrum
+    const scCol=p.sc>=80?'#D4956A':p.sc>=65?'#8AAEE0':'#7AB89A';
+    const barBg=p.sc>=80?'linear-gradient(90deg,#8A5A2A,#D4956A)':p.sc>=65?'linear-gradient(90deg,#4A6A9A,#8AAEE0)':'linear-gradient(90deg,#3A7A5A,#7AB89A)';
+    grid.innerHTML+=`
+      <div class="pcard${isTop?' top-pick':''}">
+        ${isTop?'<div class="top-badge">Best Match</div>':''}
+        <div class="ch">
+          <div class="clogo" style="background:${p.bg};color:${p.col}">${p.logo}</div>
+          <div><div class="pname">${p.name}</div><div class="pcomp">${p.company}</div></div>
+        </div>
+        <div class="score-row">
+          <span class="score-lbl">AI Score</span>
+          <div class="sbar-wrap"><div class="sbar" style="width:${p.sc}%;background:${barBg}"></div></div>
+          <span class="snum" style="color:${scCol}">${p.sc}</span>
+        </div>
+        <div class="cbody">
+          <p class="pdesc">${p.desc}</p>
+          <div class="feats">${p.hi.map(h=>`<div class="feat"><span class="fi">◆</span><span>${h}</span></div>`).join('')}</div>
+          <div class="p-note"><strong>Why for you —</strong> ${p.nt}</div>
+          <div class="badges">
+            <span class="badge badge-r">Returns: ${p.returns}</span>
+            ${p.tax?'<span class="badge badge-g">80C Eligible</span>':''}
+            ${p.mat?'<span class="badge badge-b">Maturity Benefit</span>':''}
+          </div>
+        </div>
+        <div class="cfoot">
+          <div>
+            <div class="prem-label">Est. Annual Premium</div>
+            <div class="prem-val">₹ ${prem.toLocaleString('en-IN')}</div>
+          </div>
+          <button class="view-btn" onclick="openPolicy('${p.link}','${p.company}')">
+            Official Site ↗
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('comparison').style.display='block';
+  document.getElementById('ctable').innerHTML=`
+    <thead><tr>
+      <th>Policy</th><th>Insurer</th><th>AI Score</th>
+      <th>Est. Premium / yr</th><th>Returns</th><th>Cover</th><th>80C Tax</th><th>Maturity</th>
+    </tr></thead>
+    <tbody>
+      ${top.map(p=>`<tr>
+        <td>${p.name}</td>
+        <td>${p.company}</td>
+        <td style="color:${p.sc>=80?'#D4956A':p.sc>=65?'#8AAEE0':'#7AB89A'};font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:500">${p.sc} / 99</td>
+        <td>₹ ${p.prem(pr.amt).toLocaleString('en-IN')}</td>
+        <td>${p.returns}</td>
+        <td style="font-size:0.75rem">${p.cover}</td>
+        <td style="color:${p.tax?'#7AB89A':'#5A5048'}">${p.tax?'Yes':'—'}</td>
+        <td style="color:${p.mat?'#7AB89A':'#5A5048'}">${p.mat?'Yes':'—'}</td>
+      </tr>`).join('')}
+    </tbody>
+  `;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── OPEN POLICY ───
+function openPolicy(url, company){
+  // Try window.open first; if blocked show modal with direct link
+  const w = window.open(url, '_blank', 'noopener,noreferrer');
+  if(!w || w.closed || typeof w.closed === 'undefined'){
+    showLinkModal(url, company);
+  }
+}
+
+function showLinkModal(url, company){
+  let m = document.getElementById('link-modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'link-modal';
+    m.style.cssText = `position:fixed;inset:0;z-index:9000;background:rgba(10,9,8,0.88);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);`;
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `
+    <div style="background:#282420;border:1px solid rgba(184,115,51,0.3);border-radius:8px;padding:2.4rem;max-width:480px;width:90%;text-align:center;box-shadow:0 40px 80px rgba(0,0,0,0.7);">
+      <div style="font-size:1.5rem;margin-bottom:0.5rem;">🔗</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#D4956A;margin-bottom:0.6rem;">Visit ${company} Official Website</div>
+      <p style="font-size:0.82rem;color:#8A8078;margin-bottom:1.5rem;line-height:1.6;">Your browser may have blocked the popup. Click the button below to open the official insurer page in a new tab.</p>
+      <a href="${url}" target="_blank" rel="noopener noreferrer"
+        style="display:inline-block;background:#B87333;color:#0E0D0B;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.85rem 2rem;border-radius:3px;text-decoration:none;margin-bottom:1rem;transition:background 0.2s;"
+        onmouseover="this.style.background='#D4956A'" onmouseout="this.style.background='#B87333'">
+        Open Official Page ↗
+      </a>
+      <br>
+      <button onclick="document.getElementById('link-modal').style.display='none'"
+        style="background:transparent;border:none;color:#5A5048;font-size:0.78rem;cursor:pointer;margin-top:0.5rem;font-family:'DM Sans',sans-serif;letter-spacing:0.05em;">
+        ✕ Close
+      </button>
+    </div>
+  `;
+  m.style.display = 'flex';
+  m.onclick = function(e){ if(e.target===m) m.style.display='none'; };
+}
+
+function resetApp(){
+  document.getElementById('results').style.display='none';
+  document.getElementById('comparison').style.display='none';
+  document.getElementById('form-section').style.display='block';
+  document.getElementById('hero').style.display='flex';
+  ['s1','s2','s3','s4','s5'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.classList.remove('done','active');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
